@@ -1,2 +1,2 @@
 pyomo~=5.7.0
-pandas
+pandas~=1.2.0

@@ -2,6 +2,7 @@
 Contains end-to-end test for sudoku-solver
 """
 import unittest
+from unittest.mock import Mock, patch
 
 import pandas as pd
 
@@ -11,40 +12,35 @@ from sudoku_solver.run import main
 class TestE2E(unittest.TestCase):
     def setUp(self):
         self.inputs = {
-            None: {
-                "rows": {None: list(range(1, 10))},
-                "cols": {None: list(range(1, 10))},
-                "vals": {None: list(range(1, 10))},
-                "p": {None: list(range(1, 4))},
-                "q": {None: list(range(1, 4))},
-                "square_size": {None: 3},
-                "given_vals": {
-                    (1, 7, 2): 1,
-                    (2, 2, 8): 1,
-                    (2, 6, 7): 1,
-                    (2, 8, 9): 1,
-                    (3, 1, 6): 1,
-                    (3, 3, 2): 1,
-                    (3, 7, 5): 1,
-                    (4, 2, 7): 1,
-                    (4, 5, 6): 1,
-                    (5, 4, 9): 1,
-                    (5, 6, 1): 1,
-                    (6, 5, 2): 1, 
-                    (6, 8, 4): 1,
-                    (7, 3, 5): 1,
-                    (7, 7, 6): 1,
-                    (7, 9, 3): 1,
-                    (8, 2, 9): 1,
-                    (8, 4, 4): 1,
-                    (8, 8, 7): 1,
-                    (9, 3, 6): 1,
-                },
-            },
+            (1, 7): 2,
+            (2, 2): 8,
+            (2, 6): 7,
+            (2, 8): 9,
+            (3, 1): 6,
+            (3, 3): 2,
+            (3, 7): 5,
+            (4, 2): 7,
+            (4, 5): 6,
+            (5, 4): 9,
+            (5, 6): 1,
+            (6, 5): 2, 
+            (6, 8): 4,
+            (7, 3): 5,
+            (7, 7): 6,
+            (7, 9): 3,
+            (8, 2): 9,
+            (8, 4): 4,
+            (8, 8): 7,
+            (9, 3): 6,
         }
 
-    def test_e2e(self):
-        solution_df = main(self.inputs)
+    @patch("sudoku_solver.run.CLI")
+    def test_e2e(self, mock_cli: Mock):
+        mock_cli_instance = Mock()
+        mock_cli.return_value = mock_cli_instance
+        mock_cli_instance.args.model_inputs = self.inputs
+
+        solution_df = main()
 
         expected_df = pd.DataFrame(
             {

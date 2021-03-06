@@ -1,6 +1,7 @@
 """
 Conducts all necessary actions for the tool
 """
+from sudoku_solver.inputs_formatter import InputsFormatter
 from sudoku_solver.solver import Solver
 from sudoku_solver.sudoku_model import SudokuModel
 
@@ -22,6 +23,8 @@ class Conductor:
     def __init__(self, model_inputs: dict):
         self._model_inputs: dict = model_inputs
 
+        self.formatted_inputs: dict = {}
+        self.inputs_formatter: InputsFormatter = None
         self.sudoku_model: SudokuModel = SudokuModel()
         self.solver: Solver = None
 
@@ -35,7 +38,11 @@ class Conductor:
         Returns:
             None
         """
+        self.inputs_formatter = InputsFormatter(self._model_inputs)
+        self.inputs_formatter.set_formatted_inputs()
+        self.formatted_inputs = self.inputs_formatter.formatted_inputs
+
         self.sudoku_model.create_model()
 
-        self.solver = Solver(self.sudoku_model.model, self._model_inputs, False)
+        self.solver = Solver(self.sudoku_model.model, self.formatted_inputs, False)
         self.solver.calculate_solution()

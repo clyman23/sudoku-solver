@@ -1,13 +1,28 @@
 import itertools
+import json
 
 import numpy as np
 import pyomo.environ as pe
 
+from sudoku.create_input_data import create_input_data
+
 
 def main():
+    with open("./examples/example_puzzle.json", "r") as f:
+        knowns = json.load(f)
+    data = create_input_data(knowns)
+
+    create_and_solve(data)
+
+
+def create_and_solve(input_data: dict) -> np.array:
+    """
+    input_data (dict): Dict of input data formatted for pyomo
+    """
     model = create_model()
-    instance = instantiate_model(model)
-    solve_model(instance)
+    instance = instantiate_model(model, input_data)
+    solution = solve_model(instance)
+    return solution
 
 
 def create_model():
@@ -104,7 +119,7 @@ def objective_rule(m):
     return pe.summation(m.x)
 
 
-def instantiate_model(model):
+def instantiate_model(model, input_data):
     location_index = []
 
     box_mapping = {
@@ -119,62 +134,11 @@ def instantiate_model(model):
         box_col = (location[1] - 1) // 3
         location_index.append(location + (box_mapping[(box_row, box_col)],) )
 
-    print(location_index)
-
-    data = {
-        None: {
-            "h": {None: list(range(1, 10))},
-            "i": {None: list(range(1, 10))},
-            "j": {None: list(range(1, 10))},
-            "k": {None: list(range(1, 10))},
-            "location_index": {None: location_index},
-            "knowns": {
-                (1, (1, 7, 3)): 1,
-                (1, (7, 6, 8)): 1,
-                (1, (8, 3, 7)): 1,
-                (1, (9, 9, 9)): 1,
-                (2, (2, 1, 1)): 1,
-                (2, (4, 2, 4)): 1,
-                (2, (6, 6, 5)): 1,
-                (2, (9, 8, 9)): 1,
-                (3, (1, 6, 2)): 1,
-                (3, (6, 4, 5)): 1,
-                (4, (2, 5, 2)): 1,
-                (4, (3, 9, 3)): 1,
-                (4, (5, 3, 4)): 1,
-                (4, (8, 8, 9)): 1,
-                (5, (1, 9, 3)): 1,
-                (5, (3, 3, 1)): 1,
-                (5, (5, 8, 6)): 1,
-                (5, (7, 5, 8)): 1,
-                (6, (3, 6, 2)): 1,
-                (6, (4, 7, 6)): 1,
-                (6, (5, 4, 5)): 1,
-                (6, (6, 1, 4)): 1,
-                (6, (7, 9, 9)): 1,
-                (6, (8, 5, 8)): 1,
-                (7, (2, 3, 1)): 1,
-                (7, (4, 1, 4)): 1,
-                (7, (7, 2, 7)): 1,
-                (7, (8, 7, 9)): 1,
-                (8, (3, 4, 2)): 1,
-                (8, (4, 5, 5)): 1,
-                (8, (5, 1, 4)): 1,
-                (8, (6, 8, 6)): 1,
-                (8, (8, 2, 7)): 1,
-                (9, (1, 4, 2)): 1,
-                (9, (3, 2, 1)): 1,
-                (9, (4, 9, 6)): 1,
-                (9, (9, 1, 7)): 1
-            }
-        }
-    }
-
-    instance = model.create_instance(data)
+    instance = model.create_instance(input_data)
     return instance
 
 
-def solve_model(instance):
+def solve_model(instance) -> np.array:
     solver = pe.SolverFactory("cbc")
     solver.solve(instance)
 
@@ -192,6 +156,7 @@ def solve_model(instance):
 
     print()
     print(solution_space)
+    return solution_space
 
 
 if __name__ == "__main__":
